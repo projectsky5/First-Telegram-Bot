@@ -11,14 +11,17 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,11 +42,39 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
 
             if(messageText.equals("/start")){
                 sendMainMenu(chatId);
-            } else {
+            } else if (messageText.equals("/keyboard")){
+                sendReplyKeyboard(chatId);
+            }else if (messageText.equals("whoami")){
+                sendMyName(chatId, update.getMessage().getFrom());
+            }
+            else if (messageText.equals("Получить картинку")){
+                sendImage(chatId);
+            }
+            else {
                 sendMessage(chatId, "Я вас не понимаю");
             }
         } else if(update.hasCallbackQuery()){
             handleCallbackQuery(update.getCallbackQuery());
+        }
+    }
+
+    private void sendReplyKeyboard(Long chatId) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId)
+                .text("Это пример обычной клавиатуры:")
+                .build();
+
+        List<KeyboardRow> keyboardRows = List.of(
+            new KeyboardRow("Привет", "Картинка"));
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardRows);
+
+        message.setReplyMarkup(replyKeyboardMarkup);
+
+        try {
+            telegramClient.execute(message);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 
